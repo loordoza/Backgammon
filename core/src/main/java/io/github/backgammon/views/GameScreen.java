@@ -2,11 +2,15 @@ package io.github.backgammon.views;
 
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.Screen;
+import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.graphics.GL20;
 import com.badlogic.gdx.graphics.Texture;
+import com.badlogic.gdx.graphics.g2d.BitmapFont;
 import com.badlogic.gdx.math.Vector2;
 import com.badlogic.gdx.scenes.scene2d.Stage;
 import com.badlogic.gdx.scenes.scene2d.ui.Image;
+import com.badlogic.gdx.scenes.scene2d.ui.Label;
+import com.badlogic.gdx.scenes.scene2d.ui.Skin;
 import com.badlogic.gdx.scenes.scene2d.utils.TextureRegionDrawable;
 import com.badlogic.gdx.utils.viewport.ScreenViewport;
 import io.github.backgammon.Backgammon;
@@ -22,6 +26,7 @@ public class GameScreen implements Screen {
     private final GameManager gameManager;
 
     private Stage stage;
+    private Label turnLabel;
     private Image boardImage;
     private List<Image> whitePieces;
     private List<Image> blackPieces;
@@ -48,6 +53,18 @@ public class GameScreen implements Screen {
         boardImage = new Image(backgroundTexture);
         boardImage.setSize(Gdx.graphics.getWidth(), Gdx.graphics.getHeight());
         stage.addActor(boardImage);
+
+        Skin skin = new Skin();
+        skin.add("default-font", new BitmapFont());
+        Label.LabelStyle labelStyle = new Label.LabelStyle();
+        labelStyle.font = skin.getFont("default-font");
+        labelStyle.fontColor = Color.WHITE;
+
+        turnLabel = new Label((gameManager.getCurrentPlayer() == Player.WHITE ? "WHITE" : "BLACK"), labelStyle);
+        turnLabel.setFontScale(2f);
+        turnLabel.setPosition(250, 330);
+
+        stage.addActor(turnLabel);
 
         whiteTexture = new Texture("white_piece.png");
         blackTexture = new Texture("black_piece.png");
@@ -98,6 +115,7 @@ public class GameScreen implements Screen {
     public void render(float v) {
         Gdx.gl.glClear(GL20.GL_COLOR_BUFFER_BIT);
         updateDices();
+        updateLabel();
         stage.act(v);
         stage.draw();
     }
@@ -118,12 +136,53 @@ public class GameScreen implements Screen {
                 pieceImage.setDrawable(new TextureRegionDrawable(isMovable ? (piece.getOwner() == Player.WHITE ? whiteSelectedTexture : blackSelectedTexture) : (piece.getOwner() == Player.WHITE ? whiteTexture : blackTexture)));
             }
         }
+
+        List<Piece> whiteBarPieces = gameManager.getBoard().getBarPieces(Player.WHITE);
+        for (int i = 0; i < whiteBarPieces.size(); i++) {
+            Image pieceImage = whitePieces.get(whiteIndex++);
+            float x = 546;
+            float y = 500 - (i * PIECE_SIZE * 0.9f);
+            pieceImage.setPosition(x, y);
+
+            boolean isMovable = movablePieces.contains(-1);
+            pieceImage.setDrawable(new TextureRegionDrawable(isMovable ? whiteSelectedTexture : whiteTexture));
+        }
+
+        List<Piece> blackBarPieces = gameManager.getBoard().getBarPieces(Player.BLACK);
+        for (int i = 0; i < blackBarPieces.size(); i++) {
+            Image pieceImage = blackPieces.get(blackIndex++);
+            float x = 546;
+            float y = 200 + (i * PIECE_SIZE * 0.9f);
+            pieceImage.setPosition(x, y);
+
+            boolean isMovable = movablePieces.contains(-1);
+            pieceImage.setDrawable(new TextureRegionDrawable(isMovable ? blackSelectedTexture : blackTexture));
+        }
+
     }
 
     private void updateDices() {
         List<Integer> values = gameManager.getDiceValues();
+        List<Boolean> usedDices = gameManager.getUsedDices();
         dice1.setDrawable(new TextureRegionDrawable(diceTextures.get(values.get(0) - 1)));
         dice2.setDrawable(new TextureRegionDrawable(diceTextures.get(values.get(1) - 1)));
+
+        if (usedDices.get(0)) {
+            dice1.getColor().a = 0.5f;
+        } else {
+            dice1.getColor().a = 1f;
+        }
+
+        if (usedDices.get(1)) {
+            dice2.getColor().a = 0.5f;
+        } else {
+            dice2.getColor().a = 1f;
+        }
+    }
+
+    private void updateLabel() {
+        Player currentPlayer = gameManager.getCurrentPlayer();
+        turnLabel.setText(currentPlayer == Player.WHITE ? "WHITE" : "BLACK");
     }
 
     public boolean isDiceClicked(Vector2 touch) {

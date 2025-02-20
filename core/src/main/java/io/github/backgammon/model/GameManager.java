@@ -51,6 +51,13 @@ public class GameManager {
         return Arrays.asList(dice1.getValue(), dice2.getValue());
     }
 
+    public List<Boolean> getUsedDices() {
+        List<Boolean> list = new ArrayList<>();
+        list.add(dice1.isUsed());
+        list.add(dice2.isUsed());
+        return list;
+    }
+
     public List<Integer> getMovablePieces() {
         Set<Integer> whoCanMove = new HashSet<>();
         List<intPair> pairOfPossibleMoves = getPossibleMoves();
@@ -59,6 +66,17 @@ public class GameManager {
             whoCanMove.add(pair.getFirst());
 
         return new ArrayList<>(whoCanMove);
+    }
+
+    public List<Integer> getPossibleMovesForPiece(int from) {
+        List<Integer> whereCanMove = new ArrayList<>();
+        List<intPair> pairOfPossibleMoves = getPossibleMoves();
+
+        for(intPair pair : pairOfPossibleMoves)
+            if (pair.getFirst() == from)
+                whereCanMove.add(pair.getSecond());
+
+        return whereCanMove;
     }
 
     public List<intPair> getPossibleMoves() {
@@ -82,7 +100,7 @@ public class GameManager {
                         List<Piece> pieces = board.getPieces(i);
                         if (!pieces.isEmpty() && pieces.getLast().getOwner().equals(currentPlayer)) {
                             int target = i + (direction * dice.getValue());
-                            if (target >= 0 && target < 24 && board.isMoveLegal(i,currentPlayer)) {
+                            if (target >= 0 && target < 24 && board.isMoveLegal(i, target, currentPlayer)) {
                                 possibleMoves.add(new intPair(i, target));
                             }
                         }
@@ -101,6 +119,21 @@ public class GameManager {
                 break;
             }
         }
+    }
+
+    public void makeMoveFromBar(int to) {
+        board.movePieceFromBar(to, currentPlayer);
+        for(Dice dice : new Dice[]{dice1, dice2}) {
+            if(currentPlayer == Player.WHITE && !dice.isUsed() && dice.getValue() == to+1
+            || currentPlayer == Player.BLACK && !dice.isUsed() && dice.getValue() == 24-to) {
+                dice.use();
+                break;
+            }
+        }
+    }
+
+    public boolean arePiecesInBar() {
+        return !board.isBarEmpty(currentPlayer);
     }
 
     public void nextTurn() {

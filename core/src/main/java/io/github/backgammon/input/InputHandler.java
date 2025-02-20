@@ -33,7 +33,16 @@ public class InputHandler extends InputAdapter {
         int clickedPoint = getClickedPoint(touch);
         if (clickedPoint != -1) {
             if (selectedPoint == -1) {
-                if (isValidSelection(clickedPoint)) {
+                if(gameManager.arePiecesInBar()) {
+                    System.out.println(gameManager.getPossibleMoves());
+                    System.out.println(new intPair(-1, clickedPoint));
+                    if (gameManager.getPossibleMoves().contains(new intPair(-1, clickedPoint))) {
+                        gameManager.makeMoveFromBar(clickedPoint);
+                        gameManager.nextTurn();
+                        gameScreen.updatePieces();
+                    }
+                }
+                else if (isValidSelection(clickedPoint)) {
                     selectedPoint = clickedPoint;
                 }
             } else {

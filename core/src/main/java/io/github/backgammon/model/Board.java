@@ -54,11 +54,14 @@ public class Board {
         bars[color].add(piece);
     }
 
-    public void movePieceFromBar(int point, Player player) {
+    public void movePieceFromBar(int to, Player player) {
+        if (points[to].size() == 1 && points[to].getLast().getOwner() != player) {
+            movePieceToBar(to);
+        }
         int color = player.getId();
         Piece piece = bars[color].getLast();
         bars[color].remove(piece);
-        points[point].add(piece);
+        points[to].add(piece);
     }
 
     public void bearOffPiece(int point) {
@@ -83,12 +86,18 @@ public class Board {
         return points[to].isEmpty() || points[to].size() == 1 || points[to].getLast().getOwner().equals(player);
     }
 
-    public boolean isMoveLegal(int to, Player player) {
-        if(points[to].isEmpty()) {
+    public boolean isMoveLegal(int from, int to, Player player) {
+        if (points[to].isEmpty())
             return true;
-        }
-        Player colorTo = points[to].getLast().getOwner();
-        return player == colorTo || points[to].size() == 1;
+
+        Player ownerOfTargetPoint = points[to].getLast().getOwner();
+        if (ownerOfTargetPoint == player)
+            return true;
+
+        if (points[to].size() == 1)
+            return true;
+
+        return false;
     }
 
     public boolean hasPieces(Player player) {
