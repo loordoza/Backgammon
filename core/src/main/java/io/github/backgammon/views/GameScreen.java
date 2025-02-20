@@ -7,8 +7,10 @@ import com.badlogic.gdx.graphics.Texture;
 import com.badlogic.gdx.math.Vector2;
 import com.badlogic.gdx.scenes.scene2d.Stage;
 import com.badlogic.gdx.scenes.scene2d.ui.Image;
+import com.badlogic.gdx.scenes.scene2d.utils.TextureRegionDrawable;
 import com.badlogic.gdx.utils.viewport.ScreenViewport;
 import io.github.backgammon.Backgammon;
+import io.github.backgammon.input.InputHandler;
 import io.github.backgammon.model.GameManager;
 import io.github.backgammon.model.Piece;
 import io.github.backgammon.model.Player;
@@ -24,13 +26,15 @@ public class GameScreen implements Screen {
     private List<Image> whitePieces;
     private List<Image> blackPieces;
 
-    private Image dice1;
-    private Image dice2;
+    private Texture whiteTexture, blackTexture, whiteSelectedTexture, blackSelectedTexture;
+    private List<Texture> diceTextures;
 
-    private final float PIECE_SIZE = 51f;
-    private static final float[] POINT_X = {59, 141, 223, 305, 305, 469, 623, 705, 787, 869, 951, 1033,
-        1033, 951, 869, 787, 705, 623, 469, 305, 305, 223, 141, 59};
-    private static final float[] POINT_Y = {592, 592, 592, 592, 592, 592, 592, 592, 592, 592, 592, 592,
+    private Image dice1, dice2;
+
+    public static final float PIECE_SIZE = 51f;
+    public static final float[] POINT_X = {1033, 951, 869, 787, 705, 623, 469, 387, 305, 223, 141, 59,
+        59, 141, 223, 305, 387, 469, 623, 705, 787, 869, 951, 1033};
+    public static final float[] POINT_Y = {592, 592, 592, 592, 592, 592, 592, 592, 592, 592, 592, 592,
         40, 40, 40, 40, 40, 40, 40, 40, 40, 40, 40, 40};
 
     public GameScreen(Backgammon backgammon) {
@@ -45,41 +49,44 @@ public class GameScreen implements Screen {
         boardImage.setSize(Gdx.graphics.getWidth(), Gdx.graphics.getHeight());
         stage.addActor(boardImage);
 
-        Texture whiteTexture = new Texture("white_piece.png");
-        Texture blackTexture = new Texture("black_piece.png");
+        whiteTexture = new Texture("white_piece.png");
+        blackTexture = new Texture("black_piece.png");
+        whiteSelectedTexture = new Texture("white_piece_selected.png");
+        blackSelectedTexture = new Texture("black_piece_selected.png");
+
         whitePieces = new ArrayList<>();
         blackPieces = new ArrayList<>();
 
-        for (int i = 0; i < 24; i++) {
-            List<Piece> pieces = gameManager.getBoard().getPieces(i);
-            for (int j = 0; j < pieces.size(); j++) {
-                Image pieceImage;
-                if (pieces.get(j).getOwner() == Player.WHITE) {
-                    pieceImage = new Image(whiteTexture);
-                    whitePieces.add(pieceImage);
-                } else {
-                    pieceImage = new Image(blackTexture);
-                    blackPieces.add(pieceImage);
-                }
+        for (int i = 0; i < 15; i++) {
+            Image whitePiece = new Image(whiteTexture);
+            whitePiece.setSize(PIECE_SIZE, PIECE_SIZE);
+            whitePieces.add(whitePiece);
+            stage.addActor(whitePiece);
 
-                pieceImage.setSize(PIECE_SIZE, PIECE_SIZE);
-                stage.addActor(pieceImage);
-            }
+            Image blackPiece = new Image(blackTexture);
+            blackPiece.setSize(PIECE_SIZE, PIECE_SIZE);
+            blackPieces.add(blackPiece);
+            stage.addActor(blackPiece);
         }
 
-        Texture diceTexture1 = new Texture("dice_1.png");
-        Texture diceTexture2 = new Texture("dice_2.png");
-        dice1 = new Image(diceTexture1);
-        dice2 = new Image(diceTexture2);
+        diceTextures = new ArrayList<>();
+        for (int i = 1; i <= 6; i++) {
+            diceTextures.add(new Texture("dice_" + i + ".png"));
+        }
+
+        dice1 = new Image(diceTextures.get(0));
+        dice2 = new Image(diceTextures.get(1));
 
         dice1.setSize(70, 70);
         dice2.setSize(70, 70);
-
         dice1.setPosition(650, 310);
         dice2.setPosition(750, 310);
 
         stage.addActor(dice1);
         stage.addActor(dice2);
+
+        Gdx.input.setInputProcessor(new InputHandler(gameManager, this));
+        updatePieces();
     }
 
     @Override
@@ -90,33 +97,42 @@ public class GameScreen implements Screen {
     @Override
     public void render(float v) {
         Gdx.gl.glClear(GL20.GL_COLOR_BUFFER_BIT);
-        updatePieces();
+        updateDices();
         stage.act(v);
         stage.draw();
     }
 
-    private void updatePieces() {
+    public void updatePieces() {
         int whiteIndex = 0, blackIndex = 0;
+        List<Integer> movablePieces = gameManager.getMovablePieces();
 
         for (int i = 0; i < 24; i++) {
             List<Piece> pieces = gameManager.getBoard().getPieces(i);
             for (int j = 0; j < pieces.size(); j++) {
-                Vector2 position;
-                if (i < 12) {
-                    position = new Vector2(POINT_X[i], POINT_Y[i] - (j * PIECE_SIZE * 0.9f));
-                } else {
-                    position = new Vector2(POINT_X[i], POINT_Y[i] + (j * PIECE_SIZE * 0.9f));
-                }
+                Vector2 position = new Vector2(POINT_X[i], i < 12 ? POINT_Y[i] - (j * PIECE_SIZE * 0.9f) : POINT_Y[i] + (j * PIECE_SIZE * 0.9f));
+                Piece piece = pieces.get(j);
+                Image pieceImage = (piece.getOwner() == Player.WHITE) ? whitePieces.get(whiteIndex++) : blackPieces.get(blackIndex++);
+                pieceImage.setPosition(position.x, position.y);
 
-                if (pieces.get(j).getOwner() == Player.WHITE) {
-                    whitePieces.get(whiteIndex).setPosition(position.x, position.y);
-                    whiteIndex++;
-                } else {
-                    blackPieces.get(blackIndex).setPosition(position.x, position.y);
-                    blackIndex++;
-                }
+                boolean isMovable = movablePieces.contains(i) && j == pieces.size() - 1;
+                pieceImage.setDrawable(new TextureRegionDrawable(isMovable ? (piece.getOwner() == Player.WHITE ? whiteSelectedTexture : blackSelectedTexture) : (piece.getOwner() == Player.WHITE ? whiteTexture : blackTexture)));
             }
         }
+    }
+
+    private void updateDices() {
+        List<Integer> values = gameManager.getDiceValues();
+        dice1.setDrawable(new TextureRegionDrawable(diceTextures.get(values.get(0) - 1)));
+        dice2.setDrawable(new TextureRegionDrawable(diceTextures.get(values.get(1) - 1)));
+    }
+
+    public boolean isDiceClicked(Vector2 touch) {
+        return isTouched(dice1, touch) || isTouched(dice2, touch);
+    }
+
+    private boolean isTouched(Image dice, Vector2 touch) {
+        return touch.x >= dice.getX() && touch.x <= dice.getX() + dice.getWidth()
+            && touch.y >= dice.getY() && touch.y <= dice.getY() + dice.getHeight();
     }
 
     @Override
@@ -144,5 +160,14 @@ public class GameScreen implements Screen {
     public void dispose() {
         stage.dispose();
         boardImage.remove();
+        whiteTexture.dispose();
+        blackTexture.dispose();
+        whiteSelectedTexture.dispose();
+        blackSelectedTexture.dispose();
+        diceTextures.forEach(Texture::dispose);
+    }
+
+    public Stage getStage() {
+        return stage;
     }
 }

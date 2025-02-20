@@ -18,6 +18,15 @@ public class intPair {
     }
 
     @Override
+    public boolean equals(Object obj) {
+        if (obj instanceof intPair) {
+            intPair other = (intPair) obj;
+            return first == other.first && second == other.second;
+        }
+        return false;
+    }
+
+    @Override
     public String toString() {
         return "(" + first + ", " + second + ")";
     }

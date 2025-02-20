@@ -70,6 +70,11 @@ public class Board {
         return bars[color].isEmpty();
     }
 
+    public List<Piece> getBarPieces(Player player) {
+        int color = player.getId();
+        return bars[color];
+    }
+
     public List<Piece> getPieces(int point) {
         return points[point];
     }
@@ -78,7 +83,7 @@ public class Board {
         return points[to].isEmpty() || points[to].size() == 1 || points[to].getLast().getOwner().equals(player);
     }
 
-    public boolean isMoveLegal(int from, int to, Player player) {
+    public boolean isMoveLegal(int to, Player player) {
         if(points[to].isEmpty()) {
             return true;
         }
@@ -95,17 +100,5 @@ public class Board {
             }
         }
         return false;
-    }
-
-    public void printBoard() {
-        System.out.println(points[0].getLast().getOwner().getId());
-        for (int i = 0; i < NUM_POINTS/2; i++) {
-            System.out.print(points[i].size() + " ");
-        }
-        System.out.println();
-        for(int i=NUM_POINTS-1; i>=NUM_POINTS/2; --i) {
-            System.out.print(points[i].size() + " ");
-        }
-        System.out.println();
     }
 }

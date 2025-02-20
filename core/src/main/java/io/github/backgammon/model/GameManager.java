@@ -2,9 +2,7 @@ package io.github.backgammon.model;
 
 import io.github.backgammon.util.intPair;
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
+import java.util.*;
 
 public class GameManager {
     private Board board;
@@ -53,6 +51,16 @@ public class GameManager {
         return Arrays.asList(dice1.getValue(), dice2.getValue());
     }
 
+    public List<Integer> getMovablePieces() {
+        Set<Integer> whoCanMove = new HashSet<>();
+        List<intPair> pairOfPossibleMoves = getPossibleMoves();
+
+        for (intPair pair : pairOfPossibleMoves)
+            whoCanMove.add(pair.getFirst());
+
+        return new ArrayList<>(whoCanMove);
+    }
+
     public List<intPair> getPossibleMoves() {
         List<intPair> possibleMoves = new ArrayList<>();
         int direction = (currentPlayer == Player.WHITE) ? 1 : -1;
@@ -63,7 +71,7 @@ public class GameManager {
                 if (!dice.isUsed()) {
                     int target = (currentPlayer == Player.WHITE) ? dice.getValue() - 1 : 24 - dice.getValue();
                     if (board.isExitBarLegal(target, currentPlayer)) {
-                        possibleMoves.add(new intPair(start, target));
+                        possibleMoves.add(new intPair(-1, target));
                     }
                 }
             }
@@ -74,7 +82,7 @@ public class GameManager {
                         List<Piece> pieces = board.getPieces(i);
                         if (!pieces.isEmpty() && pieces.getLast().getOwner().equals(currentPlayer)) {
                             int target = i + (direction * dice.getValue());
-                            if (target >= 0 && target < 24 && board.isMoveLegal(i,target,currentPlayer)) {
+                            if (target >= 0 && target < 24 && board.isMoveLegal(i,currentPlayer)) {
                                 possibleMoves.add(new intPair(i, target));
                             }
                         }
@@ -83,6 +91,16 @@ public class GameManager {
             }
         }
         return possibleMoves;
+    }
+
+    public void makeMove(int from, int to) {
+        board.movePiece(from, to);
+        for(Dice dice : new Dice[]{dice1, dice2}) {
+            if(!dice.isUsed() && dice.getValue() == Math.abs(from-to)) {
+                dice.use();
+                break;
+            }
+        }
     }
 
     public void nextTurn() {
