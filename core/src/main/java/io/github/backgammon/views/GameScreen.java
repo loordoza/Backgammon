@@ -37,7 +37,7 @@ public class GameScreen implements Screen {
 
     private List<Highlight> highlights;
 
-    private Image dice1, dice2;
+    private Image dice1, dice2, dice3, dice4;
 
     public static final float PIECE_SIZE = 51f;
     public static final float[] POINT_X = {1033, 951, 869, 787, 705, 623, 469, 387, 305, 223, 141, 59,
@@ -103,14 +103,26 @@ public class GameScreen implements Screen {
 
         dice1 = new Image(diceTextures.get(0));
         dice2 = new Image(diceTextures.get(1));
+        dice3 = new Image(diceTextures.get(2));
+        dice4 = new Image(diceTextures.get(3));
 
         dice1.setSize(70, 70);
         dice2.setSize(70, 70);
+        dice3.setSize(70, 70);
+        dice4.setSize(70, 70);
+
         dice1.setPosition(650, 310);
         dice2.setPosition(750, 310);
+        dice3.setPosition(850, 310);
+        dice4.setPosition(950, 310);
+
+        dice3.setVisible(false);
+        dice4.setVisible(false);
 
         stage.addActor(dice1);
         stage.addActor(dice2);
+        stage.addActor(dice3);
+        stage.addActor(dice4);
 
         highlights = new ArrayList<>();
 
@@ -202,6 +214,7 @@ public class GameScreen implements Screen {
     private void updateDices() {
         List<Integer> values = gameManager.getDiceValues();
         List<Boolean> usedDices = gameManager.getUsedDices();
+
         dice1.setDrawable(new TextureRegionDrawable(diceTextures.get(values.get(0) - 1)));
         dice2.setDrawable(new TextureRegionDrawable(diceTextures.get(values.get(1) - 1)));
 
@@ -215,6 +228,29 @@ public class GameScreen implements Screen {
             dice2.getColor().a = 0.5f;
         } else {
             dice2.getColor().a = 1f;
+        }
+
+        if (gameManager.areExtraDices()) {
+            dice3.setVisible(true);
+            dice4.setVisible(true);
+
+            dice3.setDrawable(new TextureRegionDrawable(diceTextures.get(values.get(2) - 1)));
+            dice4.setDrawable(new TextureRegionDrawable(diceTextures.get(values.get(3) - 1)));
+
+            if (usedDices.get(2)) {
+                dice3.getColor().a = 0.5f;
+            } else {
+                dice3.getColor().a = 1f;
+            }
+
+            if (usedDices.get(3)) {
+                dice4.getColor().a = 0.5f;
+            } else {
+                dice4.getColor().a = 1f;
+            }
+        } else {
+            dice3.setVisible(false);
+            dice4.setVisible(false);
         }
     }
 

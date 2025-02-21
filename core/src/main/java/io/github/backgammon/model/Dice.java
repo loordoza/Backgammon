@@ -8,7 +8,7 @@ public class Dice {
 
     public Dice() {
         value = new Random().nextInt(6) + 1;
-        isUsed = false;
+        isUsed = true;
     }
 
     public int roll() {
@@ -24,6 +24,11 @@ public class Dice {
 
     public boolean isUsed() {
         return isUsed;
+    }
+
+    public void setValue(int value) {
+        this.value = value;
+        isUsed = false;
     }
 
     public int getValue() {

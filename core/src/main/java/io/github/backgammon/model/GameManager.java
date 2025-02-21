@@ -7,6 +7,7 @@ import java.util.*;
 public class GameManager {
     private Board board;
     private Dice dice1, dice2;
+    private Dice extraDice1, extraDice2;
 
     Player currentPlayer;
 
@@ -14,6 +15,8 @@ public class GameManager {
         board = new Board();
         dice1 = new Dice();
         dice2 = new Dice();
+        extraDice1 = new Dice();
+        extraDice2 = new Dice();
 
         currentPlayer = whoStart();
     }
@@ -42,10 +45,14 @@ public class GameManager {
     public void rollTwoDices() {
         dice1.roll();
         dice2.roll();
+        if (dice1.getValue() == dice2.getValue()) {
+            extraDice1.setValue(dice1.getValue());
+            extraDice2.setValue(dice2.getValue());
+        }
     }
 
     public List<Integer> getDiceValues() {
-        if (dice1.getValue() == dice2.getValue()) {
+        if (areExtraDices()) {
             return Arrays.asList(dice1.getValue(), dice2.getValue(), dice1.getValue(), dice2.getValue());
         }
         return Arrays.asList(dice1.getValue(), dice2.getValue());
@@ -55,7 +62,15 @@ public class GameManager {
         List<Boolean> list = new ArrayList<>();
         list.add(dice1.isUsed());
         list.add(dice2.isUsed());
+        if (areExtraDices()) {
+            list.add(extraDice1.isUsed());
+            list.add(extraDice2.isUsed());
+        }
         return list;
+    }
+
+    public boolean areExtraDices() {
+        return dice1.getValue() == dice2.getValue();
     }
 
     public List<Integer> getMovablePieces() {
@@ -85,7 +100,7 @@ public class GameManager {
         int start = (currentPlayer == Player.WHITE) ? 0 : 23;
 
         if (board.allPiecesInHomeArea(currentPlayer)) {
-            for (Dice dice : new Dice[]{dice1, dice2}) {
+            for (Dice dice : new Dice[]{dice1, dice2, extraDice1, extraDice2}) {
                 if (!dice.isUsed()) {
                     for (int i = start; i >= 0 && i < 24; i += direction) {
                         List<Piece> pieces = board.getPieces(i);
@@ -104,7 +119,7 @@ public class GameManager {
         }
 
         if (!board.isBarEmpty(currentPlayer)) {
-            for (Dice dice : new Dice[]{dice1, dice2}) {
+            for (Dice dice : new Dice[]{dice1, dice2, extraDice1, extraDice2}) {
                 if (!dice.isUsed()) {
                     int target = (currentPlayer == Player.WHITE) ? dice.getValue() - 1 : 24 - dice.getValue();
                     if (board.isExitBarLegal(target, currentPlayer)) {
@@ -113,7 +128,7 @@ public class GameManager {
                 }
             }
         } else {
-            for (Dice dice : new Dice[]{dice1, dice2}) {
+            for (Dice dice : new Dice[]{dice1, dice2, extraDice1, extraDice2}) {
                 if (!dice.isUsed()) {
                     for (int i = start; i >= 0 && i < 24; i += direction) {
                         List<Piece> pieces = board.getPieces(i);
@@ -132,7 +147,7 @@ public class GameManager {
 
     public void makeMove(int from, int to) {
         board.movePiece(from, to);
-        for(Dice dice : new Dice[]{dice1, dice2}) {
+        for(Dice dice : new Dice[]{dice1, dice2, extraDice1, extraDice2}) {
             if(!dice.isUsed() && dice.getValue() == Math.abs(from-to)) {
                 dice.use();
                 break;
@@ -142,7 +157,7 @@ public class GameManager {
 
     public void makeMoveFromBar(int to) {
         board.movePieceFromBar(to, currentPlayer);
-        for(Dice dice : new Dice[]{dice1, dice2}) {
+        for(Dice dice : new Dice[]{dice1, dice2, extraDice1, extraDice2}) {
             if(currentPlayer == Player.WHITE && !dice.isUsed() && dice.getValue() == to+1
                 || currentPlayer == Player.BLACK && !dice.isUsed() && dice.getValue() == 24-to) {
                 dice.use();
@@ -154,7 +169,7 @@ public class GameManager {
     public void bearOffPiece(int from) {
         board.bearOffPiece(from, currentPlayer);
         int to = (currentPlayer == Player.WHITE) ? 24 : 0;
-        for(Dice dice : new Dice[]{dice1, dice2}) {
+        for(Dice dice : new Dice[]{dice1, dice2, extraDice1, extraDice2}) {
             if(!dice.isUsed() && dice.getValue() >= Math.abs(from-to)) {
                 System.out.println(from + " " + to + " " + dice.getValue());
                 dice.use();
