@@ -2,7 +2,7 @@ package io.github.backgammon;
 
 import com.badlogic.gdx.Game;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
-import io.github.backgammon.views.GameScreen;
+import io.github.backgammon.views.MenuScreen;
 
 public class Backgammon extends Game {
     SpriteBatch batch;
@@ -10,7 +10,7 @@ public class Backgammon extends Game {
     @Override
     public void create() {
         batch = new SpriteBatch();
-        this.setScreen(new GameScreen(this));
+        this.setScreen(new MenuScreen(this));
     }
 
     @Override

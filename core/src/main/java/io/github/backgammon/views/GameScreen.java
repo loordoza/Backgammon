@@ -16,6 +16,7 @@ import com.badlogic.gdx.utils.viewport.ScreenViewport;
 import io.github.backgammon.Backgammon;
 import io.github.backgammon.input.InputHandler;
 import io.github.backgammon.model.GameManager;
+import io.github.backgammon.model.GameMode;
 import io.github.backgammon.model.Piece;
 import io.github.backgammon.model.Player;
 
@@ -45,9 +46,13 @@ public class GameScreen implements Screen {
     public static final float[] POINT_Y = {592, 592, 592, 592, 592, 592, 592, 592, 592, 592, 592, 592,
         40, 40, 40, 40, 40, 40, 40, 40, 40, 40, 40, 40};
 
-    public GameScreen(Backgammon backgammon) {
+    private float aiMoveDelay = 1.0f;
+    private float aiMoveTimer = 0.0f;
+    private boolean isAIMoving = false;
+
+    public GameScreen(Backgammon backgammon, GameMode gameMode) {
         this.game = backgammon;
-        this.gameManager = new GameManager();
+        this.gameManager = new GameManager(gameMode);
 
         stage = new Stage(new ScreenViewport());
         Gdx.input.setInputProcessor(stage);
@@ -136,13 +141,27 @@ public class GameScreen implements Screen {
     }
 
     @Override
-    public void render(float v) {
+    public void render(float delta) {
         Gdx.gl.glClear(GL20.GL_COLOR_BUFFER_BIT);
         updateDices();
         updateLabel();
         updateNoMoves();
-        stage.act(v);
+        stage.act(delta);
         stage.draw();
+
+        if (gameManager.getCurrentPlayer() == Player.BLACK && gameManager.isAIPlayerActive()) {
+            if (!isAIMoving) {
+                isAIMoving = true;
+                aiMoveTimer = 0.0f;
+            } else {
+                aiMoveTimer += delta;
+                if (aiMoveTimer >= aiMoveDelay) {
+                    gameManager.getAIPlayer().makeMove();
+                    updatePieces();
+                    isAIMoving = false;
+                }
+            }
+        }
 
         if (gameManager.hasWon(Player.WHITE)) {
             game.setScreen(new EndScreen(game, Player.WHITE));
@@ -272,6 +291,9 @@ public class GameScreen implements Screen {
             highlight.remove();
         }
         highlights.clear();
+
+        if(isAIMoving)
+            return;
 
         List<Integer> possibleMoves;
         if (gameManager.arePiecesInBar()) {

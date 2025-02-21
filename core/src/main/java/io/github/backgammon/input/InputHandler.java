@@ -4,6 +4,7 @@ import com.badlogic.gdx.InputAdapter;
 import com.badlogic.gdx.math.Vector2;
 import io.github.backgammon.model.GameManager;
 import io.github.backgammon.model.Piece;
+import io.github.backgammon.model.Player;
 import io.github.backgammon.util.intPair;
 import io.github.backgammon.views.GameScreen;
 
@@ -24,9 +25,13 @@ public class InputHandler extends InputAdapter {
     public boolean touchDown(int screenX, int screenY, int pointer, int button) {
         Vector2 touch = gameScreen.getStage().screenToStageCoordinates(new Vector2(screenX, screenY));
 
+        if (gameManager.isAIPlayerActive() && gameManager.getCurrentPlayer() == Player.BLACK) {
+            return false;
+        }
+
+        gameScreen.updateHighlights(selectedPoint);
         gameManager.nextTurn();
         gameScreen.updatePieces();
-        gameScreen.updateHighlights(selectedPoint);
 
         int clickedPoint = getClickedPoint(touch);
         boolean isHouseClicked = isHouseClicked(touch);
@@ -36,6 +41,7 @@ public class InputHandler extends InputAdapter {
             gameScreen.updatePieces();
             selectedPoint = -1;
             gameScreen.updateHighlights(selectedPoint);
+            gameManager.nextTurn();
             return true;
         }
 

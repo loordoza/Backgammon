@@ -1,5 +1,7 @@
 package io.github.backgammon.model;
 
+import io.github.backgammon.ai.AIPlayer;
+import io.github.backgammon.ai.RandomPlayer;
 import io.github.backgammon.util.intPair;
 
 import java.util.*;
@@ -10,8 +12,9 @@ public class GameManager {
     private Dice extraDice1, extraDice2;
 
     Player currentPlayer;
+    AIPlayer aiPlayer;
 
-    public GameManager() {
+    public GameManager(GameMode gameMode) {
         board = new Board();
         dice1 = new Dice();
         dice2 = new Dice();
@@ -19,6 +22,10 @@ public class GameManager {
         extraDice2 = new Dice();
 
         currentPlayer = whoStart();
+
+        if(gameMode == GameMode.ONE_PLAYER) {
+            aiPlayer = new RandomPlayer(this);
+        }
     }
 
     private Player whoStart() {
@@ -207,5 +214,13 @@ public class GameManager {
 
     public Board getBoard() {
         return board;
+    }
+
+    public boolean isAIPlayerActive() {
+        return aiPlayer != null;
+    }
+
+    public AIPlayer getAIPlayer() {
+        return aiPlayer;
     }
 }
