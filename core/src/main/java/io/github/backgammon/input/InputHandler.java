@@ -73,7 +73,7 @@ public class InputHandler extends InputAdapter {
 
     private boolean isValidSelection(int point) {
         List<Piece> pieces = gameManager.getBoard().getPieces(point);
-        return !pieces.isEmpty() && pieces.getLast().getOwner() == gameManager.getCurrentPlayer();
+        return !pieces.isEmpty() && pieces.get(pieces.size() - 1).getOwner() == gameManager.getCurrentPlayer();
     }
 
     private int getClickedPoint(Vector2 touch) {

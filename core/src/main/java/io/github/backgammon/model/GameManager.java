@@ -111,7 +111,7 @@ public class GameManager {
                 if (!dice.isUsed()) {
                     for (int i = start; i >= 0 && i < 24; i += direction) {
                         List<Piece> pieces = board.getPieces(i);
-                        if (!pieces.isEmpty() && pieces.getLast().getOwner().equals(currentPlayer)) {
+                        if (!pieces.isEmpty() && pieces.get(pieces.size() - 1).getOwner().equals(currentPlayer)) {
                             int target = i + (direction * dice.getValue());
                             if (target >= 24) {
                                 possibleMoves.add(new intPair(i, 999));
@@ -139,7 +139,7 @@ public class GameManager {
                 if (!dice.isUsed()) {
                     for (int i = start; i >= 0 && i < 24; i += direction) {
                         List<Piece> pieces = board.getPieces(i);
-                        if (!pieces.isEmpty() && pieces.getLast().getOwner().equals(currentPlayer)) {
+                        if (!pieces.isEmpty() && pieces.get(pieces.size() - 1).getOwner().equals(currentPlayer)) {
                             int target = i + (direction * dice.getValue());
                             if (target >= 0 && target < 24 && board.isMoveLegal(i, target, currentPlayer)) {
                                 possibleMoves.add(new intPair(i, target));

@@ -44,7 +44,7 @@ public class Board {
     }
 
     public void movePiece(int from, int to) {
-        if (points[to].size() == 1 && points[to].getLast().getOwner() != points[from].getLast().getOwner()) {
+        if (points[to].size() == 1 && points[to].get(points[to].size() - 1).getOwner() != points[from].get(points[from].size() - 1).getOwner()) {
             movePieceToBar(to);
         }
         Piece piece = points[from].remove(points[from].size() - 1);
@@ -52,24 +52,24 @@ public class Board {
     }
 
     public void movePieceToBar(int point) {
-        Piece piece = points[point].getLast();
+        Piece piece = points[point].get(points[point].size() - 1);
         points[point].remove(piece);
         int color = piece.getOwner().getId();
         bars[color].add(piece);
     }
 
     public void movePieceFromBar(int to, Player player) {
-        if (points[to].size() == 1 && points[to].getLast().getOwner() != player) {
+        if (points[to].size() == 1 && points[to].get(points[to].size() - 1).getOwner() != player) {
             movePieceToBar(to);
         }
         int color = player.getId();
-        Piece piece = bars[color].getLast();
+        Piece piece = bars[color].get(bars[color].size() - 1);
         bars[color].remove(piece);
         points[to].add(piece);
     }
 
     public void bearOffPiece(int point, Player player) {
-        points[point].remove(points[point].getLast());
+        points[point].remove(points[point].size() - 1);
         if(player.getId() == Player.WHITE.getId())
             whiteHouse++;
         else
@@ -97,14 +97,14 @@ public class Board {
     }
 
     public boolean isExitBarLegal(int to, Player player) {
-        return points[to].isEmpty() || points[to].size() == 1 || points[to].getLast().getOwner().equals(player);
+        return points[to].isEmpty() || points[to].size() == 1 || points[to].get(points[to].size() - 1).getOwner().equals(player);
     }
 
     public boolean isMoveLegal(int from, int to, Player player) {
         if (points[to].isEmpty())
             return true;
 
-        Player ownerOfTargetPoint = points[to].getLast().getOwner();
+        Player ownerOfTargetPoint = points[to].get(points[to].size() - 1).getOwner();
         if (ownerOfTargetPoint == player)
             return true;
 
@@ -119,14 +119,14 @@ public class Board {
             if (!bars[Player.WHITE.getId()].isEmpty())
                 return false;
             for (int i = 0; i < NUM_POINTS-6; i++) {
-                if (!points[i].isEmpty() && points[i].getLast().getOwner() == player)
+                if (!points[i].isEmpty() && points[i].get(points[i].size() - 1).getOwner() == player)
                     return false;
             }
         } else {
             if (!bars[Player.BLACK.getId()].isEmpty())
                 return false;
             for (int i = 6; i < NUM_POINTS; i++) {
-                if (!points[i].isEmpty() && points[i].getLast().getOwner() == player)
+                if (!points[i].isEmpty() && points[i].get(points[i].size() - 1).getOwner() == player)
                     return false;
             }
         }
