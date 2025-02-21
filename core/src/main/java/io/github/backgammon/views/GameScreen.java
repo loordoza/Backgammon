@@ -27,12 +27,15 @@ public class GameScreen implements Screen {
 
     private Stage stage;
     private Label turnLabel;
+    private Label noMovesLabel;
     private Image boardImage;
     private List<Image> whitePieces;
     private List<Image> blackPieces;
 
-    private Texture whiteTexture, blackTexture, whiteSelectedTexture, blackSelectedTexture;
+    private Texture whiteTexture, blackTexture, whiteSelectedTexture, blackSelectedTexture, whiteHouseTexture, blackHouseTexture;
     private List<Texture> diceTextures;
+
+    private List<Highlight> highlights;
 
     private Image dice1, dice2;
 
@@ -63,13 +66,20 @@ public class GameScreen implements Screen {
         turnLabel = new Label((gameManager.getCurrentPlayer() == Player.WHITE ? "WHITE" : "BLACK"), labelStyle);
         turnLabel.setFontScale(2f);
         turnLabel.setPosition(250, 330);
-
         stage.addActor(turnLabel);
+
+        noMovesLabel = new Label("No moves", labelStyle);
+        noMovesLabel.setFontScale(2f);
+        noMovesLabel.setPosition(380, 330);
+        noMovesLabel.setVisible(false);
+        stage.addActor(noMovesLabel);
 
         whiteTexture = new Texture("white_piece.png");
         blackTexture = new Texture("black_piece.png");
         whiteSelectedTexture = new Texture("white_piece_selected.png");
         blackSelectedTexture = new Texture("black_piece_selected.png");
+        whiteHouseTexture = new Texture("white_house.png");
+        blackHouseTexture = new Texture("black_house.png");
 
         whitePieces = new ArrayList<>();
         blackPieces = new ArrayList<>();
@@ -102,6 +112,8 @@ public class GameScreen implements Screen {
         stage.addActor(dice1);
         stage.addActor(dice2);
 
+        highlights = new ArrayList<>();
+
         Gdx.input.setInputProcessor(new InputHandler(gameManager, this));
         updatePieces();
     }
@@ -116,8 +128,15 @@ public class GameScreen implements Screen {
         Gdx.gl.glClear(GL20.GL_COLOR_BUFFER_BIT);
         updateDices();
         updateLabel();
+        updateNoMoves();
         stage.act(v);
         stage.draw();
+
+        if (gameManager.hasWon(Player.WHITE)) {
+            game.setScreen(new EndScreen(game, Player.WHITE));
+        } else if (gameManager.hasWon(Player.BLACK)) {
+            game.setScreen(new EndScreen(game, Player.BLACK));
+        }
     }
 
     public void updatePieces() {
@@ -159,6 +178,25 @@ public class GameScreen implements Screen {
             pieceImage.setDrawable(new TextureRegionDrawable(isMovable ? blackSelectedTexture : blackTexture));
         }
 
+        int whiteHousePieces = gameManager.howManyInHouse(Player.WHITE);
+        for (int i = 0; i < whiteHousePieces; i++) {
+            Image pieceImage = whitePieces.get(whiteIndex++);
+            float x = 1135;
+            float y = 92 + (i * 12);
+            pieceImage.setPosition(x, y);
+            pieceImage.setSize(55, 9);
+            pieceImage.setDrawable(new TextureRegionDrawable(whiteHouseTexture));
+        }
+
+        int blackHousePieces = gameManager.howManyInHouse(Player.BLACK);
+        for (int i = 0; i < blackHousePieces; i++) {
+            Image pieceImage = blackPieces.get(blackIndex++);
+            float x = 1135;
+            float y = 424 + (i * 12);
+            pieceImage.setPosition(x, y);
+            pieceImage.setSize(55, 9);
+            pieceImage.setDrawable(new TextureRegionDrawable(blackHouseTexture));
+        }
     }
 
     private void updateDices() {
@@ -185,13 +223,47 @@ public class GameScreen implements Screen {
         turnLabel.setText(currentPlayer == Player.WHITE ? "WHITE" : "BLACK");
     }
 
-    public boolean isDiceClicked(Vector2 touch) {
-        return isTouched(dice1, touch) || isTouched(dice2, touch);
+    private void updateNoMoves() {
+        if (gameManager.getPossibleMoves().isEmpty()) {
+            noMovesLabel.setVisible(true);
+        } else {
+            noMovesLabel.setVisible(false);
+        }
     }
 
-    private boolean isTouched(Image dice, Vector2 touch) {
-        return touch.x >= dice.getX() && touch.x <= dice.getX() + dice.getWidth()
-            && touch.y >= dice.getY() && touch.y <= dice.getY() + dice.getHeight();
+    public void updateHighlights(int selectedPoint) {
+        for (Highlight highlight : highlights) {
+            highlight.remove();
+        }
+        highlights.clear();
+
+        List<Integer> possibleMoves;
+        if (gameManager.arePiecesInBar()) {
+            possibleMoves = gameManager.getPossibleMovesForPiece(-1);
+        } else if (selectedPoint != -1) {
+            possibleMoves = gameManager.getPossibleMovesForPiece(selectedPoint);
+        } else {
+            return;
+        }
+
+        for (int target : possibleMoves) {
+            if (target == -999) {
+                Highlight highlight = new Highlight(1134, 424, 55, 172);
+                highlights.add(highlight);
+                stage.addActor(highlight);
+                continue;
+            } else if (target == 999) {
+                Highlight highlight = new Highlight(1134, 92, 55, 172);
+                highlights.add(highlight);
+                stage.addActor(highlight);
+                continue;
+            }
+            float x = POINT_X[target];
+            float y = POINT_Y[target];
+            Highlight highlight = new Highlight(x, y, PIECE_SIZE, PIECE_SIZE);
+            highlights.add(highlight);
+            stage.addActor(highlight);
+        }
     }
 
     @Override
@@ -223,6 +295,8 @@ public class GameScreen implements Screen {
         blackTexture.dispose();
         whiteSelectedTexture.dispose();
         blackSelectedTexture.dispose();
+        whiteHouseTexture.dispose();
+        blackHouseTexture.dispose();
         diceTextures.forEach(Texture::dispose);
     }
 

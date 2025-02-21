@@ -24,34 +24,40 @@ public class InputHandler extends InputAdapter {
     public boolean touchDown(int screenX, int screenY, int pointer, int button) {
         Vector2 touch = gameScreen.getStage().screenToStageCoordinates(new Vector2(screenX, screenY));
 
-        if (gameScreen.isDiceClicked(touch)) {
-            gameManager.rollTwoDices();
+        gameManager.nextTurn();
+        gameScreen.updatePieces();
+        gameScreen.updateHighlights(selectedPoint);
+
+        int clickedPoint = getClickedPoint(touch);
+        boolean isHouseClicked = isHouseClicked(touch);
+
+        if (gameManager.allPiecesInHomeArea() && selectedPoint != -1 && isHouseClicked) {
+            gameManager.bearOffPiece(selectedPoint);
             gameScreen.updatePieces();
+            selectedPoint = -1;
+            gameScreen.updateHighlights(selectedPoint);
             return true;
         }
 
-        int clickedPoint = getClickedPoint(touch);
         if (clickedPoint != -1) {
             if (selectedPoint == -1) {
-                if(gameManager.arePiecesInBar()) {
-                    System.out.println(gameManager.getPossibleMoves());
-                    System.out.println(new intPair(-1, clickedPoint));
+                if (gameManager.arePiecesInBar()) {
                     if (gameManager.getPossibleMoves().contains(new intPair(-1, clickedPoint))) {
                         gameManager.makeMoveFromBar(clickedPoint);
-                        gameManager.nextTurn();
                         gameScreen.updatePieces();
+                        gameScreen.updateHighlights(selectedPoint);
                     }
-                }
-                else if (isValidSelection(clickedPoint)) {
+                } else if (isValidSelection(clickedPoint)) {
                     selectedPoint = clickedPoint;
+                    gameScreen.updateHighlights(selectedPoint);
                 }
             } else {
                 if (gameManager.getPossibleMoves().contains(new intPair(selectedPoint, clickedPoint))) {
                     gameManager.makeMove(selectedPoint, clickedPoint);
-                    gameManager.nextTurn();
                     gameScreen.updatePieces();
                 }
                 selectedPoint = -1;
+                gameScreen.updateHighlights(selectedPoint);
             }
             return true;
         }
@@ -82,5 +88,15 @@ public class InputHandler extends InputAdapter {
             }
         }
         return -1;
+    }
+
+    private boolean isHouseClicked(Vector2 touch) {
+        float houseX = 1135;
+        float houseY = 91;
+        float houseWidth = 55;
+        float houseHeight = 504;
+
+        return touch.x >= houseX && touch.x <= houseX + houseWidth &&
+            touch.y >= houseY && touch.y <= houseY + houseHeight;
     }
 }

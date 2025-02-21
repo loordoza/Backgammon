@@ -9,6 +9,8 @@ public class Board {
     private List<Piece>[] points;
     private List<Piece>[] bars;
 
+    private int whiteHouse, blackHouse;
+
     public Board() {
         points = new ArrayList[NUM_POINTS];
         for (int i = 0; i < NUM_POINTS; i++) {
@@ -18,6 +20,8 @@ public class Board {
         bars = new ArrayList[2];
         bars[Player.WHITE.getId()] = new ArrayList<>();
         bars[Player.BLACK.getId()] = new ArrayList<>();
+
+        whiteHouse = blackHouse = 0;
 
         initPieces();
     }
@@ -64,8 +68,18 @@ public class Board {
         points[to].add(piece);
     }
 
-    public void bearOffPiece(int point) {
+    public void bearOffPiece(int point, Player player) {
         points[point].remove(points[point].getLast());
+        if(player.getId() == Player.WHITE.getId())
+            whiteHouse++;
+        else
+            blackHouse++;
+    }
+
+    public int howManyInHouse(Player player) {
+        if (player.getId() == Player.WHITE.getId())
+            return whiteHouse;
+        return blackHouse;
     }
 
     public boolean isBarEmpty(Player player) {
@@ -98,6 +112,25 @@ public class Board {
             return true;
 
         return false;
+    }
+
+    public boolean allPiecesInHomeArea(Player player) {
+        if (player == Player.WHITE) {
+            if (!bars[Player.WHITE.getId()].isEmpty())
+                return false;
+            for (int i = 0; i < NUM_POINTS-6; i++) {
+                if (!points[i].isEmpty() && points[i].getLast().getOwner() == player)
+                    return false;
+            }
+        } else {
+            if (!bars[Player.BLACK.getId()].isEmpty())
+                return false;
+            for (int i = 6; i < NUM_POINTS; i++) {
+                if (!points[i].isEmpty() && points[i].getLast().getOwner() == player)
+                    return false;
+            }
+        }
+        return true;
     }
 
     public boolean hasPieces(Player player) {

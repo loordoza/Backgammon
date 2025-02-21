@@ -84,6 +84,25 @@ public class GameManager {
         int direction = (currentPlayer == Player.WHITE) ? 1 : -1;
         int start = (currentPlayer == Player.WHITE) ? 0 : 23;
 
+        if (board.allPiecesInHomeArea(currentPlayer)) {
+            for (Dice dice : new Dice[]{dice1, dice2}) {
+                if (!dice.isUsed()) {
+                    for (int i = start; i >= 0 && i < 24; i += direction) {
+                        List<Piece> pieces = board.getPieces(i);
+                        if (!pieces.isEmpty() && pieces.getLast().getOwner().equals(currentPlayer)) {
+                            int target = i + (direction * dice.getValue());
+                            if (target >= 24) {
+                                possibleMoves.add(new intPair(i, 999));
+                            }
+                            if (target < 0) {
+                                possibleMoves.add(new intPair(i, -999));
+                            }
+                        }
+                    }
+                }
+            }
+        }
+
         if (!board.isBarEmpty(currentPlayer)) {
             for (Dice dice : new Dice[]{dice1, dice2}) {
                 if (!dice.isUsed()) {
@@ -125,7 +144,19 @@ public class GameManager {
         board.movePieceFromBar(to, currentPlayer);
         for(Dice dice : new Dice[]{dice1, dice2}) {
             if(currentPlayer == Player.WHITE && !dice.isUsed() && dice.getValue() == to+1
-            || currentPlayer == Player.BLACK && !dice.isUsed() && dice.getValue() == 24-to) {
+                || currentPlayer == Player.BLACK && !dice.isUsed() && dice.getValue() == 24-to) {
+                dice.use();
+                break;
+            }
+        }
+    }
+
+    public void bearOffPiece(int from) {
+        board.bearOffPiece(from, currentPlayer);
+        int to = (currentPlayer == Player.WHITE) ? 24 : 0;
+        for(Dice dice : new Dice[]{dice1, dice2}) {
+            if(!dice.isUsed() && dice.getValue() >= Math.abs(from-to)) {
+                System.out.println(from + " " + to + " " + dice.getValue());
                 dice.use();
                 break;
             }
@@ -136,11 +167,19 @@ public class GameManager {
         return !board.isBarEmpty(currentPlayer);
     }
 
+    public int howManyInHouse(Player player) {
+        return board.howManyInHouse(player);
+    }
+
     public void nextTurn() {
         if (getPossibleMoves().isEmpty()) {
             currentPlayer = (currentPlayer == Player.WHITE) ? Player.BLACK : Player.WHITE;
             rollTwoDices();
         }
+    }
+
+    public boolean allPiecesInHomeArea() {
+        return board.allPiecesInHomeArea(currentPlayer);
     }
 
     public boolean hasWon(Player player) {
