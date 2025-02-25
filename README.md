@@ -6,6 +6,7 @@ A simple Backgammon game implemented in LibGDX.
 
 ```
 git clone https://github.com/loordoza/Backgammon.git
-bash build.sh
-bash run.sh
+cd Backgammon
+./build.sh
+./run.sh
 ```
